@@ -2,6 +2,68 @@
 
 **Adaptation of [IndicXlit](https://github.com/AI4Bharat/IndicXlit) for Nepali systems.**
 
+```
+pyenv install 3.10.13
+pyenv local 3.10.13
+```
+```
+python -m venv venv
+source venv/bin/activate
+```
+
+```
+pip install --upgrade pip setuptools wheel
+```
+
+```
+pip install "pip<24.0"
+```
+
+```
+git clone https://github.com/pytorch/fairseq.git
+cd fairseq
+pip install --editable ./
+cd ..
+```
+
+```
+pip install torch==2.2.0 torchvision==0.17.0 torchaudio==2.2.0 --index-url https://download.pytorch.org/whl/cu121
+pip install xformers==0.0.24 --index-url https://download.pytorch.org/whl/cu121
+pip install "numpy<2.0"
+```
+
+```
+pip install sacremoses pandas mock sacrebleu tensorboardX pyarrow indic-nlp-library triton gdown
+```
+
+```
+cd ..
+git clone https://github.com/Supriya090/NepaliXlit.git
+cd NepaliXlit/cli
+```
+
+```
+gdown 1v0RQU9BMhQJNzsesp_2BN1sImCbdw77d --output nepalixlit-en-ne.zip
+unzip nepalixlit-en-ne.zip
+```
+
+```
+wget https://github.com/AI4Bharat/IndicXlit/releases/download/v1.0/word_prob_dicts.zip
+unzip word_prob_dicts.zip
+```
+
+```
+mkdir -p source output
+```
+
+```
+echo "namaste k xa haalkhabar" > source/input.txt
+```
+
+```
+bash transliterate_sentence.sh -l 'ne' -i 'source/input.txt' -b 5 -n 5 -r 1
+```
+
 <hr>
 
 Follow the instructions to run it on your system in CLI
