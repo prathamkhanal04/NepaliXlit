@@ -64,13 +64,20 @@ You can run batch or single transliterations directly from the command line usin
    cd cli
    ```
 
-2. Download the models and dictionaries:
-   ```bash
-   # Download the model files
-   uv run gdown 1v0RQU9BMhQJNzsesp_2BN1sImCbdw77d --output nepalixlit-en-ne.zip
-   unzip nepalixlit-en-ne.zip
+2. Set up the models and dictionaries:
 
-   # Download the Unigram dictionaries for reranking from the IndicXlit release
+   If `nepalixlit-en-ne.zip` is already present in the repository root directory, you can unzip it directly:
+   ```bash
+   unzip ../nepalixlit-en-ne.zip -d .
+   ```
+   Otherwise, download it:
+   ```bash
+   uv tool run gdown 1v0RQU9BMhQJNzsesp_2BN1sImCbdw77d --output nepalixlit-en-ne.zip
+   unzip nepalixlit-en-ne.zip
+   ```
+
+   *(Optional)* If you plan to run with reranking enabled (`-r 1`), download the Unigram dictionaries from the IndicXlit release:
+   ```bash
    wget https://github.com/AI4Bharat/IndicXlit/releases/download/v1.0/word_prob_dicts.zip
    unzip word_prob_dicts.zip
    ```
@@ -108,6 +115,6 @@ You can run batch or single transliterations directly from the command line usin
     - [character.py](https://github.com/urduhack/urduhack/blob/master/urduhack/normalization/character.py)
     - [urdu_characters.py](https://github.com/urduhack/urduhack/blob/master/urduhack/urdu_characters.py)
 - **Fixed PyTorch 2.6+ Checkpoint Loading**:
-  - Configured PyTorch to support loading the fairseq checkpoint containing custom python objects under PyTorch 2.6+ by disabling pickle restrictions during loading.
+  - Configured PyTorch to support loading the fairseq checkpoint containing custom python objects under PyTorch 2.6+ by disabling pickle restrictions during loading (implemented in both the web app loading mechanism and the CLI runner [interactive.sh](file:///Users/pratham/Documents/github/NepaliXlit/cli/interactive.sh)).
 - **Fixed TemplateResponse Signature**:
   - Updated the Starlette `TemplateResponse` call signature in [app.py](file:///Users/pratham/Documents/GitHub/NepaliXlit/app/app.py) to match Starlette 1.0.0+ specification (passing `request` as the first argument) to prevent dictionary hashing type errors.

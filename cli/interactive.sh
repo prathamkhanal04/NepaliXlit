@@ -1,8 +1,11 @@
+export TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD=1
+
 source_lang=en
 target_lang=$1
 input_file=$2
 beam=$3
 nbest=$4
+
 
 
 fairseq-interactive corpus-bin \
