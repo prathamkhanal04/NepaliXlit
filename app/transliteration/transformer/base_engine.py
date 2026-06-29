@@ -6,7 +6,95 @@ from pydload import dload
 import zipfile
 from abc import ABC, abstractmethod, abstractproperty
 from indicnlp.normalize.indic_normalize import IndicNormalizerFactory
-from urduhack import normalize as shahmukhi_normalize
+# Standardized Urdu normalization mapping to replace urduhack dependency (which pulls in tensorflow/tensorflow-addons)
+# Sourced from:
+# - https://github.com/urduhack/urduhack/blob/master/urduhack/normalization/character.py
+# - https://github.com/urduhack/urduhack/blob/master/urduhack/urdu_characters.py
+_CORRECT_URDU_CHARACTERS_MAPPING = {
+    'آ': ['ﺁ', 'ﺂ'],
+    'أ': ['ﺃ'],
+    'ا': ['ﺍ', 'ﺎ'],
+    'ب': ['ﺏ', 'ﺐ', 'ﺑ', 'ﺒ'],
+    'پ': ['ﭖ', 'ﭘ', 'ﭙ'],
+    'ت': ['ﺕ', 'ﺖ', 'ﺗ', 'ﺘ'],
+    'ٹ': ['ﭦ', 'ﭧ', 'ﭨ', 'ﭩ'],
+    'ث': ['ﺛ', 'ﺜ', 'ﺚ'],
+    'ج': ['ﺝ', 'ﺞ', 'ﺟ', 'ﺠ'],
+    'ح': ['ﺡ', 'ﺣ', 'ﺤ', 'ﺢ'],
+    'خ': ['ﺧ', 'ﺨ', 'ﺦ'],
+    'د': ['ﺩ', 'ﺪ'],
+    'ذ': ['ﺬ', 'ﺫ'],
+    'ر': ['ﺭ', 'ﺮ'],
+    'ز': ['ﺯ', 'ﺰ'],
+    'س': ['ﺱ', 'ﺲ', 'ﺳ', 'ﺴ'],
+    'ش': ['ﺵ', 'ﺶ', 'ﺷ', 'ﺸ'],
+    'ص': ['ﺹ', 'ﺺ', 'ﺻ', 'ﺼ'],
+    'ض': ['ﺽ', 'ﺾ', 'ﺿ', 'ﻀ'],
+    'ط': ['ﻃ', 'ﻄ'],
+    'ظ': ['ﻅ', 'ﻇ', 'ﻈ'],
+    'ع': ['ﻉ', 'ﻊ', 'ﻋ', 'ﻌ'],
+    'غ': ['ﻍ', 'ﻏ', 'ﻐ'],
+    'ف': ['ﻑ', 'ﻒ', 'ﻓ', 'ﻔ'],
+    'ق': ['ﻕ', 'ﻖ', 'ﻗ', 'ﻘ'],
+    'ل': ['ﻝ', 'ﻞ', 'ﻟ', 'ﻠ'],
+    'م': ['ﻡ', 'ﻢ', 'ﻣ', 'ﻤ'],
+    'ن': ['ﻥ', 'ﻦ', 'ﻧ', 'ﻨ'],
+    'چ': ['ﭺ', 'ﭻ', 'ﭼ', 'ﭽ'],
+    'ڈ': ['ﮈ', 'ﮉ'],
+    'ڑ': ['ﮍ', 'ﮌ'],
+    'ژ': ['ﮋ'],
+    'ک': ['ﮎ', 'ﮏ', 'ﮐ', 'ﮑ', 'ﻛ', 'ك'],
+    'گ': ['ﮒ', 'ﮓ', 'ﮔ', 'ﮕ'],
+    'ں': ['ﮞ', 'ﮟ'],
+    'و': ['ﻮ', 'ﻭ', 'ﻮ'],
+    'ؤ': ['ﺅ'],
+    'ھ': ['ﮪ', 'ﮬ', 'ﮭ', 'ﻬ', 'ﻫ', 'ﮫ'],
+    'ہ': ['ﻩ', 'ﮦ', 'ﻪ', 'ﮧ', 'ﮩ', 'ﮨ', 'ه'],
+    'ۂ': [],
+    'ۃ': ['ة'],
+    'ء': ['ﺀ'],
+    'ی': ['ﯼ', 'ى', 'ﯽ', 'ﻰ', 'ﻱ', 'ﻲ', 'ﯾ', 'ﯿ', 'ي'],
+    'ئ': ['ﺋ', 'ﺌ'],
+    'ے': ['ﮮ', 'ﮯ', 'ﻳ', 'ﻴ'],
+    'ۓ': [],
+    '۰': ['٠'],
+    '۱': ['١'],
+    '۲': ['٢'],
+    '۳': ['٣'],
+    '۴': ['٤'],
+    '۵': ['٥'],
+    '۶': ['٦'],
+    '۷': ['٧'],
+    '۸': ['٨'],
+    '۹': ['٩'],
+    '۔': [],
+    '؟': [],
+    '٫': [],
+    '،': [],
+    'لا': ['ﻻ', 'ﻼ'],
+    '': ['ـ']
+}
+
+_URDU_TRANSLATOR = {}
+for _k, _v in _CORRECT_URDU_CHARACTERS_MAPPING.items():
+    _URDU_TRANSLATOR.update(dict.fromkeys(map(ord, _v), _k))
+
+_DIACRITICS_RE = re.compile(r'[\u064e\u064b\u0670\u0650\u064f\u064d]')
+
+_COMBINE_URDU_CHARACTERS = {
+    "آ": "آ",
+    "أ": "أ",
+    "ۓ": "ۓ",
+}
+
+def shahmukhi_normalize(text: str) -> str:
+    if not isinstance(text, str):
+        raise TypeError("Text must be str type.")
+    text = _DIACRITICS_RE.sub('', text)
+    text = text.translate(_URDU_TRANSLATOR)
+    for _key, _val in _COMBINE_URDU_CHARACTERS.items():
+        text = text.replace(_key, _val)
+    return text
 
 from ..utils import *
 LANG_WORD_REGEXES = {

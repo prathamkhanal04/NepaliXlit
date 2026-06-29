@@ -15,5 +15,4 @@ fastapi
 pydantic
 uvicorn
 
-urduhack
 indic_nlp_library
