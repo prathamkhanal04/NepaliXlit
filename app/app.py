@@ -4,8 +4,11 @@ from pydantic import BaseModel
 from transliteration import XlitEngine
 from time import time
 
+import os
+
 app = FastAPI()
-templates = Jinja2Templates(directory=".")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+templates = Jinja2Templates(directory=BASE_DIR)
 
 engine = XlitEngine("ne", beam_width=10)
 
