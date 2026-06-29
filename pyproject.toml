@@ -1,0 +1,29 @@
+[project]
+name = "nepalixlit"
+version = "0.1.0"
+description = "Nepali Transliteration Library and Web App"
+readme = "README.md"
+requires-python = "==3.10.*"
+dependencies = [
+    "pydload",
+    "flask",
+    "flask-cors",
+    "Flask-Limiter",
+    "gevent",
+    "sacremoses",
+    "pandas",
+    "tqdm",
+    "ujson",
+    "mock",
+    "tensorboardX",
+    "pyarrow",
+    "fairseq",
+    "fastapi",
+    "pydantic",
+    "uvicorn",
+    "indic-nlp-library",
+    "torch"
+]
+
+[tool.uv]
+package = false
